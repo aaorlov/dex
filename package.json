@@ -1,0 +1,15 @@
+{
+  "name": "dex",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev": "bun run --filter @dex/client-cli dev",
+    "build": "bun run --filter '*' build",
+    "build:cli": "bun run --filter @dex/client-cli build",
+    "test": "bun run --filter '*' test"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "typescript": "^5.8"
+  }
+}
