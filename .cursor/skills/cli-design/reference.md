@@ -385,6 +385,49 @@ export async function isClean(cwd: string = process.cwd()): Promise<boolean> {
 }
 ```
 
+## `src/services/store.ts` — local state with `bun:sqlite`
+
+Synchronous, zero-dep persistence for tokens, command history, and cached lookups. Auto-closes via `using`. Typed `query<Row, Params>(...)` avoids `as Foo` casts.
+
+```ts
+import { Database } from "bun:sqlite";
+import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+
+const CONFIG_DIR = join(homedir(), ".config", "mycli");
+mkdirSync(CONFIG_DIR, { recursive: true });
+
+const DB_PATH = join(CONFIG_DIR, "state.db");
+
+interface KvRow {
+  readonly value: string;
+}
+
+function openDb(): Database {
+  const db = new Database(DB_PATH);
+  db.run("PRAGMA journal_mode = WAL");
+  db.run("CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
+  return db;
+}
+
+export function get(key: string): string | undefined {
+  using db = openDb();
+  const row = db.query<KvRow, [string]>("SELECT value FROM kv WHERE key = ?").get(key);
+  return row?.value;
+}
+
+export function set(key: string, value: string): void {
+  using db = openDb();
+  db.run("INSERT OR REPLACE INTO kv (key, value) VALUES (?, ?)", [key, value]);
+}
+
+export function remove(key: string): void {
+  using db = openDb();
+  db.run("DELETE FROM kv WHERE key = ?", [key]);
+}
+```
+
 ## `src/ui/stream.ts` — markdansi streaming
 
 ```ts

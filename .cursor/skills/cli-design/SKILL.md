@@ -35,6 +35,31 @@ Add only when a concrete need appears:
 - `dotenv` — **not needed**, Bun loads `.env*` automatically.
 - `chalk` — **not needed**, `@clack/prompts` and `markdansi` cover styling. If you reach for it, you're probably mis-layering the UI.
 
+## Bun built-ins to know
+
+Bun ships batteries that replace common deps. Reach for these before adding a package.
+
+| Need | Use | Notes |
+| --- | --- | --- |
+| Local persistent state | `bun:sqlite` | Synchronous, zero-dep, faster than `better-sqlite3`. Use for tokens, command history, cached lookups, prefs — over ad-hoc JSON files. |
+| Postgres / MySQL / Redis | `Bun.sql` (Bun 1.3+) | Native typed-template client. Do not add `pg`, `mysql2`, or `ioredis`. |
+| File I/O | `Bun.file`, `Bun.write` | Lazy reads, streaming writes, hashing, automatic mime detection. |
+
+Pair handle-owning built-ins with the `using` keyword (TS 5.2+) for automatic cleanup — no `try/finally` around `.close()` calls:
+
+```ts
+import { Database } from "bun:sqlite";
+
+export function readToken(dbPath: string): string | undefined {
+  using db = new Database(dbPath);
+  return db
+    .query<{ value: string }, [string]>("SELECT value FROM kv WHERE key = ?")
+    .get("token")?.value;
+}
+```
+
+See `src/services/store.ts` in [reference.md](reference.md) for a fleshed-out example.
+
 ## Package structure
 
 Keep it flat and predictable. Each folder owns one concern and exposes its public API through `index.ts` (per `typescript.mdc`).
@@ -220,7 +245,7 @@ Per-package `bin` entry in `package.json` lets `bunx mycli` / `bun install -g` w
 - **Mixing `stdout` and `stderr`.** Breaks piping. Data → stdout; everything else → stderr.
 - **`process.exit()` mid-flow.** Throw a `CliError`; only `src/index.ts` exits.
 - **Using `chalk` / `kleur` / `picocolors` alongside clack.** Pick one styling source (clack + markdansi cover it).
-- **Reaching for `zx`, `execa`, `cross-env`, `rimraf`, `dotenv`.** Bun replaces all of them.
+- **Reaching for `zx`, `execa`, `cross-env`, `rimraf`, `dotenv`, `pg`, `mysql2`, `better-sqlite3`, `ioredis`.** Bun replaces all of them.
 - **Skipping `isCancel()`.** Silent Ctrl-C bugs; users assume the CLI hung.
 - **Hand-formatting tables.** Use `markdansi` for markdown tables or a dedicated table renderer.
 
