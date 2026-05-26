@@ -226,12 +226,11 @@ Anything that touches AWS, Kubernetes, or GitLab lives behind a thin typed wrapp
 
 ## 13. Commits, branches, PRs
 
-TODO — confirm with project owner:
-
-- Commit message style: e.g. Conventional Commits (`feat:`, `fix:`, `chore:`).
-- Branch naming: e.g. `feat/<short-desc>`, `fix/<short-desc>`.
-- MR template: TODO (likely GitLab MRs given the team's CI/CD platform).
-- Required checks before merge: `bun test`, `bun run typecheck`, lint, build.
+- Commit message style: **Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`).
+- Branch naming: `feat/<short-desc>`, `fix/<short-desc>`, `chore/<short-desc>`.
+- PRs target `main`. Squash-merge so the PR title becomes the commit on `main`.
+- CI (`.github/workflows/ci.yml`) runs on every PR and push to `main`: `bun install --frozen-lockfile`, `bun run typecheck`, `bun test`. All must pass before merge.
+- Releases (`.github/workflows/release.yml`) fire on `v*` tags pushed to `main`. They cross-compile all four target binaries, smoke-test the linux-x64 binary, and publish a GitHub Release with assets + `SHA256SUMS.txt`.
 
 ---
 

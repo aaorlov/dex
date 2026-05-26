@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build & publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build all targets
+        run: |
+          bun run build:darwin-arm64
+          bun run build:darwin-x64
+          bun run build:linux-x64
+          bun run build:linux-arm64
+
+      - name: Smoke test (linux-x64)
+        run: ./dist/dex-linux-x64 --help
+
+      - name: Generate checksums
+        working-directory: dist
+        run: sha256sum dex-* > SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/dex-darwin-arm64
+            dist/dex-darwin-x64
+            dist/dex-linux-x64
+            dist/dex-linux-arm64
+            dist/SHA256SUMS.txt
