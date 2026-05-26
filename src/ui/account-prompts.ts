@@ -8,8 +8,8 @@ import {
 type FieldKey = Exclude<keyof AccountConfig, "preApprovals">;
 
 const PLACEHOLDERS: Record<FieldKey, string> = {
-  name: "Rivian-VW JV",
-  alias: "rivw",
+  name: "Your Company Name",
+  alias: "alias",
   apiUrl: "https://api.example.com",
   configUrl: "https://example.com/cli-config.json",
   cognitoDomain: "auth.example.com",
