@@ -28,7 +28,7 @@ async function promptEntry(): Promise<PreApprovalEntry> {
       account: () =>
         text({
           message: "AWS account name",
-          placeholder: "rivian-prod",
+          placeholder: "eu1-prod-account",
           validate: (value) => validateAgainst(AwsAccountNameSchema, value),
         }),
       role: () =>
